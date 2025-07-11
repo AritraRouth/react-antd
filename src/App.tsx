@@ -1,15 +1,310 @@
-import NavBar from './components/navbar'
-import Header from './components/Header'
+import {
+  Anchor,
+  Avatar,
+  Button,
+  Card,
+  Col,
+  DatePicker,
+  Descriptions,
+  Divider,
+  Form,
+  Input,
+  Layout,
+  List,
+  Menu,
+  Row,
+  Space,
+  Steps,
+  Table,
+  Tag,
+  Image,
+  Typography,
+} from "antd";
+import "./styles/dashboard.css";
+import { Content, Header } from "antd/es/layout/layout";
+import Sider from "antd/es/layout/Sider";
+import { HiOutlineHome } from "react-icons/hi";
+import { GrOrganization } from "react-icons/gr";
+import { BsPerson } from "react-icons/bs";
+import { GiHamburgerMenu } from "react-icons/gi";
+import { useState } from "react";
+import { AiOutlineMoneyCollect } from "react-icons/ai";
+import { faker } from "@faker-js/faker";
+import ButtonGroup from "antd/es/button/button-group";
+import ImageUpload from "./components/ImageUpload";
+import PieChart from "./echarts/PieChart";
+import DynamicData from "./echarts/DynamicData";
+
+const generateData = () => {
+  const dat = [];
+  for (let i = 0; i < 34; i++) {
+    dat.push({
+      id: faker.number.int({ max: 1000 }),
+      name: faker.person.fullName(),
+      email: faker.internet.email(),
+      status: Math.random() > 0.5 ? true : false,
+    });
+  }
+  return dat;
+};
+
+const data = generateData();
 
 function App() {
-
-
+  const [collapsed, setCollapsed] = useState<boolean>(false);
   return (
-    <>
-    {<NavBar/>}
-    {<Header/>}
-    </>
-  )
+    <Layout className="container">
+      <Header style={{ backgroundColor: "white" }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <GiHamburgerMenu
+            onClick={() => setCollapsed(!collapsed)}
+            size={24}
+            style={{ marginRight: 20 }}
+          />
+          <div className="brand">DashBoard</div>
+        </div>
+      </Header>
+      <Layout>
+        <Sider collapsed={collapsed} theme="light">
+          <Menu
+            mode="inline"
+            items={[
+              {
+                label: "Home",
+                key: "home",
+                icon: <HiOutlineHome />,
+                children: [
+                  {
+                    label: "Add Profile",
+                    key: "add_profile",
+                    icon: <BsPerson />,
+                  },
+                  {
+                    label: "All Users",
+                    key: "all_users",
+                    icon: <BsPerson />,
+                  },
+                ],
+              },
+              {
+                label: "About us",
+                key: "about_us",
+                icon: <GrOrganization />,
+              },
+            ]}
+          />
+        </Sider>
+        <Content className="content">
+          <Card>
+            <Typography.Title level={5}>Traffic Data</Typography.Title>
+            <PieChart />
+          </Card>
+          <Card>
+            <Typography.Title level={4}>Traffic Data</Typography.Title>
+            <DynamicData />
+          </Card>
+          <Card>
+            <Typography.Title>sales</Typography.Title>
+            <Typography.Paragraph>
+              Lorem ipsum dolor sit amet consectetur adipisicing elit.
+              Doloremque ex quasi explicabo minus? Repellendus repellat,
+              temporibus nam harum deleniti aperiam laboriosam alias nulla iusto
+              corrupti tempore amet distinctio esse possimus?
+            </Typography.Paragraph>
+          </Card>
+          <Space direction="horizontal">
+            <Card>
+              <Space direction="horizontal">
+                <AiOutlineMoneyCollect />
+                <Typography.Title>
+                  <small>Total sales</small>
+                </Typography.Title>
+              </Space>
+              <Typography.Title>$23322</Typography.Title>
+            </Card>
+            <Card>
+              <Space direction="horizontal">
+                <AiOutlineMoneyCollect />
+                <Typography.Title>
+                  <small>Total sales</small>
+                </Typography.Title>
+              </Space>
+              <Typography.Title>$23322</Typography.Title>
+            </Card>
+            <Card>
+              <Space direction="horizontal">
+                <AiOutlineMoneyCollect />
+                <Typography.Title>
+                  <small>Total sales </small>
+                </Typography.Title>
+              </Space>
+              <Typography.Title>$23322</Typography.Title>
+            </Card>
+          </Space>
+          <Divider />
+
+          {/* <Card>
+            {previewImage && (
+              <Avatar
+                size="large"
+                src="https://www.wondercide.com/cdn/shop/articles/Upside_down_gray_cat.png?v=1685551065&width=1100"
+                onClick={() => {
+                  setPreviewImage(
+                    "https://www.wondercide.com/cdn/shop/articles/Upside_down_gray_cat.png?v=1685551065&width=1100"
+                  );
+                  setPreviewOpen(true);
+                }}
+                style={{ cursor: "pointer" }}
+              />
+            )}
+          </Card> */}
+          <ImageUpload />
+          <Card>
+            <Avatar
+              size={"large"}
+              src={
+                "https://www.wondercide.com/cdn/shop/articles/Upside_down_gray_cat.png?v=1685551065&width=1100"
+              }
+            />
+            <List
+              bordered
+              dataSource={data.slice(0, 10)}
+              renderItem={(item) => {
+                return (
+                  <List.Item>
+                    <Descriptions title={"User Details"}>
+                      <Descriptions.Item label={"Name"}>
+                        {item.name}
+                      </Descriptions.Item>
+                      <Descriptions.Item label={"Email"}>
+                        {item.email}
+                      </Descriptions.Item>
+                      <Descriptions.Item label={"Status"}>
+                        {item.status ? "Active" : "Not Active"}
+                      </Descriptions.Item>
+                    </Descriptions>
+                  </List.Item>
+                );
+              }}
+            >
+              <List.Item>Hello</List.Item>
+              <List.Item>test1</List.Item>
+              <List.Item>test2</List.Item>
+            </List>
+            <Form
+              onFinish={(values) => {
+                console.log(values);
+              }}
+              layout="vertical"
+            >
+              <Form.Item name={"name"} label={"Name"}>
+                <Input />
+              </Form.Item>
+              <Form.Item name={"email"} label={"Email"}>
+                <Input type="email" />
+              </Form.Item>
+              <Form.Item name={"password"} label={"Password"}>
+                <Input type="password" />
+              </Form.Item>
+              <Form.Item name={"dob"} label={"DOB"}>
+                <DatePicker />
+              </Form.Item>
+              <Form.Item></Form.Item>
+              <Form.Item label={"Submit"}>
+                <Button htmlType="submit" type="primary">
+                  Sign up
+                </Button>
+              </Form.Item>
+            </Form>
+          </Card>
+
+          <Card>
+            <Steps
+              current={1}
+              items={[
+                {
+                  title: "Register",
+                  description: "Please Register",
+                },
+                {
+                  title: "Login",
+                  description: "Log yourself in",
+                },
+                {
+                  title: "Visit Home Page",
+                  description: "Gooo",
+                },
+              ]}
+            />
+          </Card>
+
+          <Row gutter={[10, 0]}>
+            <Col span={6}>
+              <Card>
+                <Typography.Title>something</Typography.Title>
+              </Card>
+            </Col>
+            <Col span={14}>
+              <Card>
+                <Anchor
+                  items={[
+                    { key: "1", href: "#test1", title: "Link 1" },
+                    { key: "2", href: "#test2", title: "Link 2" },
+                    { key: "3", href: "#test3", title: "Link 3" },
+                    { key: "4", href: "#test4", title: "Link 4" },
+                  ]}
+                />
+              </Card>
+            </Col>
+          </Row>
+          <Row gutter={[10, 0]} style={{ marginTop: 10 }}>
+            <Col span={18}>
+              <Table
+                dataSource={data}
+                columns={[
+                  {
+                    dataIndex: "id",
+                    title: "ID",
+                    key: "id",
+                    fixed: true,
+                  },
+                  {
+                    dataIndex: "name",
+                    title: "name",
+                    key: "name",
+                  },
+                  {
+                    dataIndex: "email",
+                    title: "email",
+                    key: "email",
+                  },
+                  {
+                    dataIndex: "status",
+                    render: (val) =>
+                      val ? <Tag>Active</Tag> : <Tag>Not Active</Tag>,
+                  },
+                  {
+                    dataIndex: "Actions",
+                    render: () => (
+                      <ButtonGroup>
+                        <Button>Edit</Button>
+                        <Button type="primary" danger>
+                          Delete
+                        </Button>
+                      </ButtonGroup>
+                    ),
+                  },
+                ]}
+              />
+            </Col>
+          </Row>
+          <Card style={{display:"flex", justifyContent:"center",alignItems:"center", width:"200px",textAlign:"center"}}>
+            <Typography.Text>Hello This is the End Footer</Typography.Text>
+          </Card>
+        </Content>
+      </Layout>
+    </Layout>
+  );
 }
 
-export default App
+export default App;
