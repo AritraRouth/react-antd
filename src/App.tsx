@@ -19,288 +19,263 @@ import {
   Tag,
   Image,
   Typography,
+  theme,
+  message,
 } from "antd";
-import "./styles/dashboard.css";
 import { Content, Header } from "antd/es/layout/layout";
 import Sider from "antd/es/layout/Sider";
-import { HiOutlineHome } from "react-icons/hi";
-import { GrOrganization } from "react-icons/gr";
-import { BsPerson } from "react-icons/bs";
 import { GiHamburgerMenu } from "react-icons/gi";
-import { useState } from "react";
-import { AiOutlineMoneyCollect } from "react-icons/ai";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { faker } from "@faker-js/faker";
-import ButtonGroup from "antd/es/button/button-group";
-import ImageUpload from "./components/ImageUpload";
-import PieChart from "./echarts/PieChart";
 import DynamicData from "./echarts/DynamicData";
+import {
+  CodeSandboxOutlined,
+  MoonOutlined,
+  UnorderedListOutlined,
+} from "@ant-design/icons";
+import Noti from "./components/Noti";
+import HalfBar from "./echarts/HalfBar";
+import Bar from "./echarts/Bar";
+import StackedLine from "./echarts/StackedLine";
+import { useSelector } from "react-redux";
+import type { RootState } from "./app/store";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const generateData = () => {
-  const dat = [];
-  for (let i = 0; i < 34; i++) {
-    dat.push({
-      id: faker.number.int({ max: 1000 }),
-      name: faker.person.fullName(),
-      email: faker.internet.email(),
-      status: Math.random() > 0.5 ? true : false,
-    });
-  }
-  return dat;
-};
+const { Text } = Typography;
 
-const data = generateData();
+interface Todo {
+  id?: string;
+  text: string;
+  completed: boolean;
+}
 
 function App() {
+  const [themeset, setTheme] = useState<boolean>(false);
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const token = useSelector((state: RootState) => state.auth.token);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token) {
+      message.error("Unauthorized! Please Login First");
+      navigate("/");
+      return;
+    }
+
+    const fetchTodos = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_GET_URL}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log(response.data.result.items);
+        const todosData = response.data.result.items.map((todo: any) => ({
+          id: todo.id || todo._id || "N/A",
+          text: todo.text,
+          completed: todo.completed,
+        }));
+
+        setTodos(todosData);
+      } catch (error) {
+        console.error("Error fetching todos:", error);
+        message.error("Failed to fetch todos");
+      }
+    };
+
+    fetchTodos();
+  }, [token]);
+
   return (
-    <Layout className="container">
+    <Layout>
       <Header style={{ backgroundColor: "white" }}>
-        <div style={{ display: "flex", alignItems: "center" }}>
+        <div className="flex items-center-safe ml-30 mt-4">
           <GiHamburgerMenu
-            onClick={() => setCollapsed(!collapsed)}
             size={24}
-            style={{ marginRight: 20 }}
+            onClick={() => {
+              setCollapsed(!collapsed);
+            }}
           />
-          <div className="brand">DashBoard</div>
+        </div>
+        <div className="flex justify-end items-center -mt-4 -mr-6 space-x-6">
+          <Button onClick={() => setTheme(!themeset)}>
+            <MoonOutlined />
+          </Button>
+          <Noti />
+          <Image
+            width={80}
+            src="https://www.wondercide.com/cdn/shop/articles/Upside_down_gray_cat.png?v=1685551065&width=1100"
+            alt="Profile"
+            className="w-20 h-20 rounded-full"
+            preview={true}
+          />
         </div>
       </Header>
       <Layout>
-        <Sider collapsed={collapsed} theme="light">
+        <Sider
+          onMouseEnter={() => setCollapsed(false)}
+          onMouseLeave={() => setCollapsed(true)}
+          collapsed={collapsed}
+        >
           <Menu
+            className="flex-1 flex flex-col gap-7"
             mode="inline"
+            theme={themeset ? "dark" : "light"}
             items={[
               {
-                label: "Home",
-                key: "home",
-                icon: <HiOutlineHome />,
+                label: "DashBoard",
+                key: "dashboard",
+                icon: <UnorderedListOutlined />,
                 children: [
                   {
-                    label: "Add Profile",
-                    key: "add_profile",
-                    icon: <BsPerson />,
+                    label: "ecommerce",
+                    key: "ecommerce",
                   },
                   {
-                    label: "All Users",
-                    key: "all_users",
-                    icon: <BsPerson />,
+                    label: "analytics",
+                    key: "analytics",
+                  },
+                  {
+                    label: "Marketing",
+                    key: "marketing",
+                  },
+                  {
+                    label: "CRM",
+                    key: "crm",
+                  },
+                  {
+                    label: "Stocks",
+                    key: "stocks",
+                  },
+                  {
+                    label: "Saas",
+                    key: "saas",
                   },
                 ],
               },
               {
-                label: "About us",
-                key: "about_us",
-                icon: <GrOrganization />,
+                label: "Calender",
+                key: "calender",
+              },
+              {
+                label: "User Profile",
+                key: "user-profile",
+              },
+              {
+                label: "Task",
+                key: "task",
+                children: [
+                  {
+                    label: "List",
+                    key: "list",
+                  },
+                  {
+                    label: "Kanban",
+                    key: "kanban",
+                  },
+                ],
+              },
+              {
+                label: "Tables",
+                key: "tables",
+                children: [
+                  {
+                    label: "Basic Tables",
+                    key: "basic-tables",
+                  },
+                  {
+                    label: "Data Tables",
+                    key: "data-tables",
+                  },
+                ],
+              },
+              {
+                label: "Chat",
+                key: "chat",
+              },
+              {
+                label: "Email",
+                key: "email",
+              },
+              {
+                label: "Invoice",
+                key: "invoice",
+              },
+              {
+                label: "Charts",
+                key: "charts",
+              },
+              {
+                label: "Ui Element",
+                key: "ui-element",
+              },
+              {
+                label: "Authentication",
+                key: "authentication",
               },
             ]}
           />
         </Sider>
-        <Content className="content">
-          <Card>
-            <Typography.Title level={5}>Traffic Data</Typography.Title>
-            <PieChart />
-          </Card>
-          <Card>
-            <Typography.Title level={4}>Traffic Data</Typography.Title>
+        <Content className="mt-1.5 ml-1.5 space-x-2 px-12">
+          <div className="flex gap-[2%] flex-row flex-wrap justify-center items-center content-center">
+            <Card className="w-[17%] h-[19%]">
+              <CodeSandboxOutlined size={40} />
+              <Typography.Title type="secondary" level={1}>
+                Customer
+              </Typography.Title>
+              <Typography.Title type="secondary" level={4}>
+                3,782
+              </Typography.Title>
+              <Text className="mt-3" type="success">
+                (↑)11.02%
+              </Text>
+            </Card>
+            <Card className="w-[13%] h-[19%]">
+              <CodeSandboxOutlined size={40} />
+              <Typography.Title type="secondary" level={1}>
+                Orders
+              </Typography.Title>
+              <Typography.Title type="secondary" level={4}>
+                5,359
+              </Typography.Title>
+              <Text className="mt-3" type="success">
+                (↑)11.02%
+              </Text>
+            </Card>
+            <HalfBar />
             <DynamicData />
-          </Card>
-          <Card>
-            <Typography.Title>sales</Typography.Title>
-            <Typography.Paragraph>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
-              Doloremque ex quasi explicabo minus? Repellendus repellat,
-              temporibus nam harum deleniti aperiam laboriosam alias nulla iusto
-              corrupti tempore amet distinctio esse possimus?
-            </Typography.Paragraph>
-          </Card>
-          <Space direction="horizontal">
-            <Card>
-              <Space direction="horizontal">
-                <AiOutlineMoneyCollect />
-                <Typography.Title>
-                  <small>Total sales</small>
-                </Typography.Title>
-              </Space>
-              <Typography.Title>$23322</Typography.Title>
-            </Card>
-            <Card>
-              <Space direction="horizontal">
-                <AiOutlineMoneyCollect />
-                <Typography.Title>
-                  <small>Total sales</small>
-                </Typography.Title>
-              </Space>
-              <Typography.Title>$23322</Typography.Title>
-            </Card>
-            <Card>
-              <Space direction="horizontal">
-                <AiOutlineMoneyCollect />
-                <Typography.Title>
-                  <small>Total sales </small>
-                </Typography.Title>
-              </Space>
-              <Typography.Title>$23322</Typography.Title>
-            </Card>
-          </Space>
-          <Divider />
+          </div>
+          <div className="flex flex-row">
+            <Bar />
+            <StackedLine />
+          </div>
+          <Divider orientation="center">data</Divider>
+          <Divider orientation="center">Todo List from MongoDB</Divider>
 
-          {/* <Card>
-            {previewImage && (
-              <Avatar
-                size="large"
-                src="https://www.wondercide.com/cdn/shop/articles/Upside_down_gray_cat.png?v=1685551065&width=1100"
-                onClick={() => {
-                  setPreviewImage(
-                    "https://www.wondercide.com/cdn/shop/articles/Upside_down_gray_cat.png?v=1685551065&width=1100"
-                  );
-                  setPreviewOpen(true);
-                }}
-                style={{ cursor: "pointer" }}
-              />
+          <List
+            bordered
+            dataSource={todos}
+            renderItem={(item) => (
+              <List.Item>
+                <Descriptions title="Todo">
+                  <Descriptions.Item label="ID">{item.id}</Descriptions.Item>
+                  <Descriptions.Item label="Text">
+                    {item.text}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Status">
+                    {item.completed ? "✅ Completed" : "❌ Not Completed"}
+                  </Descriptions.Item>
+                </Descriptions>
+              </List.Item>
             )}
-          </Card> */}
-          <ImageUpload />
-          <Card>
-            <Avatar
-              size={"large"}
-              src={
-                "https://www.wondercide.com/cdn/shop/articles/Upside_down_gray_cat.png?v=1685551065&width=1100"
-              }
-            />
-            <List
-              bordered
-              dataSource={data.slice(0, 10)}
-              renderItem={(item) => {
-                return (
-                  <List.Item>
-                    <Descriptions title={"User Details"}>
-                      <Descriptions.Item label={"Name"}>
-                        {item.name}
-                      </Descriptions.Item>
-                      <Descriptions.Item label={"Email"}>
-                        {item.email}
-                      </Descriptions.Item>
-                      <Descriptions.Item label={"Status"}>
-                        {item.status ? "Active" : "Not Active"}
-                      </Descriptions.Item>
-                    </Descriptions>
-                  </List.Item>
-                );
-              }}
-            >
-              <List.Item>Hello</List.Item>
-              <List.Item>test1</List.Item>
-              <List.Item>test2</List.Item>
-            </List>
-            <Form
-              onFinish={(values) => {
-                console.log(values);
-              }}
-              layout="vertical"
-            >
-              <Form.Item name={"name"} label={"Name"}>
-                <Input />
-              </Form.Item>
-              <Form.Item name={"email"} label={"Email"}>
-                <Input type="email" />
-              </Form.Item>
-              <Form.Item name={"password"} label={"Password"}>
-                <Input type="password" />
-              </Form.Item>
-              <Form.Item name={"dob"} label={"DOB"}>
-                <DatePicker />
-              </Form.Item>
-              <Form.Item></Form.Item>
-              <Form.Item label={"Submit"}>
-                <Button htmlType="submit" type="primary">
-                  Sign up
-                </Button>
-              </Form.Item>
-            </Form>
-          </Card>
-
-          <Card>
-            <Steps
-              current={1}
-              items={[
-                {
-                  title: "Register",
-                  description: "Please Register",
-                },
-                {
-                  title: "Login",
-                  description: "Log yourself in",
-                },
-                {
-                  title: "Visit Home Page",
-                  description: "Gooo",
-                },
-              ]}
-            />
-          </Card>
-
-          <Row gutter={[10, 0]}>
-            <Col span={6}>
-              <Card>
-                <Typography.Title>something</Typography.Title>
-              </Card>
-            </Col>
-            <Col span={14}>
-              <Card>
-                <Anchor
-                  items={[
-                    { key: "1", href: "#test1", title: "Link 1" },
-                    { key: "2", href: "#test2", title: "Link 2" },
-                    { key: "3", href: "#test3", title: "Link 3" },
-                    { key: "4", href: "#test4", title: "Link 4" },
-                  ]}
-                />
-              </Card>
-            </Col>
-          </Row>
-          <Row gutter={[10, 0]} style={{ marginTop: 10 }}>
-            <Col span={18}>
-              <Table
-                dataSource={data}
-                columns={[
-                  {
-                    dataIndex: "id",
-                    title: "ID",
-                    key: "id",
-                    fixed: true,
-                  },
-                  {
-                    dataIndex: "name",
-                    title: "name",
-                    key: "name",
-                  },
-                  {
-                    dataIndex: "email",
-                    title: "email",
-                    key: "email",
-                  },
-                  {
-                    dataIndex: "status",
-                    render: (val) =>
-                      val ? <Tag>Active</Tag> : <Tag>Not Active</Tag>,
-                  },
-                  {
-                    dataIndex: "Actions",
-                    render: () => (
-                      <ButtonGroup>
-                        <Button>Edit</Button>
-                        <Button type="primary" danger>
-                          Delete
-                        </Button>
-                      </ButtonGroup>
-                    ),
-                  },
-                ]}
-              />
-            </Col>
-          </Row>
-          <Card style={{display:"flex", justifyContent:"center",alignItems:"center", width:"200px",textAlign:"center"}}>
-            <Typography.Text>Hello This is the End Footer</Typography.Text>
-          </Card>
+          />
         </Content>
       </Layout>
     </Layout>
