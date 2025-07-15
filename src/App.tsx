@@ -1,32 +1,18 @@
 import {
-  Anchor,
-  Avatar,
   Button,
   Card,
-  Col,
-  DatePicker,
-  Descriptions,
   Divider,
-  Form,
-  Input,
   Layout,
-  List,
   Menu,
-  Row,
-  Space,
-  Steps,
   Table,
-  Tag,
   Image,
   Typography,
-  theme,
   message,
 } from "antd";
 import { Content, Header } from "antd/es/layout/layout";
 import Sider from "antd/es/layout/Sider";
 import { GiHamburgerMenu } from "react-icons/gi";
-import { useEffect, useState, type ChangeEvent } from "react";
-import { faker } from "@faker-js/faker";
+import { useEffect, useState } from "react";
 import DynamicData from "./echarts/DynamicData";
 import {
   CodeSandboxOutlined,
@@ -53,10 +39,41 @@ interface Todo {
 function App() {
   const [themeset, setTheme] = useState<boolean>(false);
   const [collapsed, setCollapsed] = useState<boolean>(false);
-  const [todos, setTodos] = useState<Todo[]>([]);
+
   const token = useSelector((state: RootState) => state.auth.token);
 
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
+
   const navigate = useNavigate();
+  const fetchTodos = async (page: number) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_GET_URL}?page=${page}&pageSize=${pageSize}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(response.data.result)
+
+      const items = response.data.result.items.map((todo: any) => ({
+        id: todo.id || todo._id || "N/A",
+        text: todo.text,
+        completed: todo.completed,
+      }));
+
+      setTodos(items);
+      setTotal(response.data.result.totalItems);
+    } catch (error) {
+      console.error("Error fetching todos:", error);
+      message.error("Failed to fetch todos");
+    }
+  };
 
   useEffect(() => {
     if (!token) {
@@ -65,33 +82,8 @@ function App() {
       return;
     }
 
-    const fetchTodos = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_GET_URL}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        console.log(response.data.result.items);
-        const todosData = response.data.result.items.map((todo: any) => ({
-          id: todo.id || todo._id || "N/A",
-          text: todo.text,
-          completed: todo.completed,
-        }));
-
-        setTodos(todosData);
-      } catch (error) {
-        console.error("Error fetching todos:", error);
-        message.error("Failed to fetch todos");
-      }
-    };
-
-    fetchTodos();
-  }, [token]);
+    fetchTodos(currentPage);
+  }, [token, currentPage]);
 
   return (
     <Layout>
@@ -259,22 +251,35 @@ function App() {
           <Divider orientation="center">data</Divider>
           <Divider orientation="center">Todo List from MongoDB</Divider>
 
-          <List
+          <Table
             bordered
             dataSource={todos}
-            renderItem={(item) => (
-              <List.Item>
-                <Descriptions title="Todo">
-                  <Descriptions.Item label="ID">{item.id}</Descriptions.Item>
-                  <Descriptions.Item label="Text">
-                    {item.text}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Status">
-                    {item.completed ? "✅ Completed" : "❌ Not Completed"}
-                  </Descriptions.Item>
-                </Descriptions>
-              </List.Item>
-            )}
+            rowKey="id"
+            pagination={{
+              current: currentPage,
+              pageSize: pageSize,
+              total: total,
+              onChange: (page) => setCurrentPage(page),
+            }}
+            columns={[
+              {
+                title: "ID",
+                dataIndex: "id",
+                key: "id",
+              },
+              {
+                title: "Text",
+                dataIndex: "text",
+                key: "text",
+              },
+              {
+                title: "Completed",
+                dataIndex: "completed",
+                key: "completed",
+                render: (value: boolean) =>
+                  value ? "✅ Completed" : "❌ Not Completed",
+              },
+            ]}
           />
         </Content>
       </Layout>
